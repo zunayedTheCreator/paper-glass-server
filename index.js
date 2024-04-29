@@ -35,6 +35,17 @@ async function run() {
         res.send(result)
     })
     
+    app.get('/item/:email', async (req, res) => {
+      const email = req.params.email;
+      try {
+        const result = await itemCollection.find({ user_email: email }).toArray();
+        res.send(result);
+      } catch (error) {
+        console.error('Error retrieving items:', error);
+        res.status(500).send('Error retrieving items');
+      }
+    });
+    
     app.get('/item', async (req, res) => {
         const cursor = itemCollection.find();
         const result = await cursor.toArray();
@@ -42,12 +53,14 @@ async function run() {
     });
 
     app.get('/item/:id', async (req, res) => {
-        const id = req.params.id;
+      const id = req.params.id;
         const query = {_id: new ObjectId(id)}
         const result = await itemCollection.findOne(query)
         res.send(result);
-    });
+      });
 
+      
+      
     // user api
     app.post('/user', async (req, res) => {
         const newUser = req.body;
@@ -61,7 +74,7 @@ async function run() {
         const result = await cursor.toArray();
         res.send(result);
     });
-
+    
     app.get('/user/:email', async (req, res) => {
         const email = req.params.email;
         const query = {email: email}
