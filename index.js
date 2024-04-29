@@ -28,39 +28,52 @@ async function run() {
     const itemCollection = client.db('craftItemDB').collection('item');
     const userCollection = client.db('craftItemDB').collection('user');
 
-    app.post('/item', async (req, res) => {
-        const newItem = req.body;
-        console.log(newItem);
-        const result = await itemCollection.insertOne(newItem)
-        res.send(result)
-    })
-    
-    app.get('/item/:email', async (req, res) => {
-      const email = req.params.email;
+    app.get('/item', async (req, res) => {
+      const cursor = itemCollection.find();
+      const result = await cursor.toArray();
+        res.send(result);
+      });
+      
+    app.get('/item/:identifier', async (req, res) => {
+      const identifier = req.params.identifier;
       try {
-        const result = await itemCollection.find({ user_email: email }).toArray();
+        let result;
+        if (ObjectId.isValid(identifier)) {
+          // If the identifier is a valid ObjectId, query by id
+          result = await itemCollection.findOne({ _id: new ObjectId(identifier) });
+        } else {
+          // Otherwise, query by email
+          result = await itemCollection.find({ user_email: identifier }).toArray();
+        }
+        if (!result) {
+          return res.status(404).send('Item not found');
+        }
         res.send(result);
       } catch (error) {
-        console.error('Error retrieving items:', error);
-        res.status(500).send('Error retrieving items');
+        console.error('Error retrieving item:', error);
+        res.status(500).send('Error retrieving item');
       }
     });
     
-    app.get('/item', async (req, res) => {
-        const cursor = itemCollection.find();
-        const result = await cursor.toArray();
-        res.send(result);
-    });
+    app.post('/item', async (req, res) => {
+      const newItem = req.body;
+      console.log(newItem);
+      const result = await itemCollection.insertOne(newItem)
+      res.send(result)
+    })
 
-    app.get('/item/:id', async (req, res) => {
+    app.delete('/item/:id', async (req, res) => {
       const id = req.params.id;
-        const query = {_id: new ObjectId(id)}
-        const result = await itemCollection.findOne(query)
+      const query = { _id: new ObjectId(id) };
+      try {
+        const result = await itemCollection.deleteOne(query);
         res.send(result);
-      });
-
-      
-      
+      } catch (error) {
+        console.error('Error deleting item:', error);
+        res.status(500).send('Error deleting item');
+      }
+    });
+    
     // user api
     app.post('/user', async (req, res) => {
         const newUser = req.body;
