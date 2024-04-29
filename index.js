@@ -27,6 +27,7 @@ async function run() {
 
     const itemCollection = client.db('craftItemDB').collection('item');
     const userCollection = client.db('craftItemDB').collection('user');
+    const categoryCollection = client.db('craftItemDB').collection('category');
 
     app.get('/item', async (req, res) => {
       const cursor = itemCollection.find();
@@ -39,10 +40,8 @@ async function run() {
       try {
         let result;
         if (ObjectId.isValid(identifier)) {
-          // If the identifier is a valid ObjectId, query by id
           result = await itemCollection.findOne({ _id: new ObjectId(identifier) });
         } else {
-          // Otherwise, query by email
           result = await itemCollection.find({ user_email: identifier }).toArray();
         }
         if (!result) {
@@ -55,6 +54,8 @@ async function run() {
       }
     });
     
+    const { ObjectId } = require('mongodb');
+
     app.post('/item', async (req, res) => {
       const newItem = req.body;
       console.log(newItem);
@@ -120,6 +121,14 @@ async function run() {
         const result = await cursor.toArray();
         res.send(result);
     });
+
+    // category api
+    app.get('/category', async (req, res) => {
+      const cursor = categoryCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
