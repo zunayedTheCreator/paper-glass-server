@@ -42,7 +42,7 @@ async function run() {
         if (ObjectId.isValid(identifier)) {
           result = await itemCollection.findOne({ _id: new ObjectId(identifier) });
         } else {
-          result = await itemCollection.find({ user_email: identifier }).toArray();
+          result = await itemCollection.find({ $or: [{ user_email: identifier }, { subcategory: identifier }] }).toArray();
         }
         if (!result) {
           return res.status(404).send('Item not found');
@@ -53,7 +53,7 @@ async function run() {
         res.status(500).send('Error retrieving item');
       }
     });
-    
+      
     const { ObjectId } = require('mongodb');
 
     app.post('/item', async (req, res) => {
